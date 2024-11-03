@@ -47,6 +47,7 @@ public class SecurityConfig {
                     "/swagger-resources/**",
                     "/api-docs/**"
                 ).permitAll()
+                .requestMatchers("/api/todos/**").hasAnyRole("USER", "ADMIN")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
@@ -56,7 +57,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setContentType("application/json");
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    response.getWriter().write("{\"error\": \"" + authException.getMessage() + "\"}");
+                    response.getWriter().write("{\"error\": \"Unauthorized: " + authException.getMessage() + "\"}");
                 })
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

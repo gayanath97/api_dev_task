@@ -34,6 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         try {
+            log.debug("Processing request to: {}", request.getRequestURI());
             String token = jwtUtil.extractTokenFromRequest(request);
             log.debug("Extracted token: {}", token);
 
@@ -43,13 +44,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    log.debug("Loaded user details: {}", userDetails);
+                    log.debug("User authorities: {}", userDetails.getAuthorities());
                     
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("Authentication set in SecurityContext");
                 }
+            } else {
+                log.debug("No token found in request");
             }
         } catch (Exception e) {
             log.error("Authentication error: ", e);
